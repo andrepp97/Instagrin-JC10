@@ -1,5 +1,12 @@
 import React, {Component} from 'react';
-import {View, Image, Text, ScrollView, ToastAndroid} from 'react-native';
+import {
+  View,
+  Image,
+  Text,
+  ScrollView,
+  ToastAndroid,
+  KeyboardAvoidingView,
+} from 'react-native';
 import {Header, Button, Input, Icon} from 'react-native-elements';
 import ImagePicker from 'react-native-image-crop-picker';
 import firebase from '@firebase/app';
@@ -105,6 +112,7 @@ class PostPhoto extends Component {
             elevation: 2,
           }}
         />
+
         <ScrollView>
           <View style={{marginVertical: 20, marginHorizontal: 15}}>
             <Button
@@ -141,7 +149,7 @@ class PostPhoto extends Component {
             <Text style={{color: 'red'}}>{this.state.error}</Text>
             <Button
               icon={<Icon name="cloud-upload" size={30} color="white" />}
-              title="Post Image"
+              title=" Post Image"
               buttonStyle={{backgroundColor: 'black'}}
               onPress={this.onBtnPostImagePress}
               loading={this.state.loading}

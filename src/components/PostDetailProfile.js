@@ -1,24 +1,8 @@
 import React, {Component} from 'react';
-import {
-  Image,
-  TouchableWithoutFeedback,
-  View,
-  ScrollView,
-  ToastAndroid,
-  ActivityIndicator,
-} from 'react-native';
-import {Header, Icon, Input, Overlay} from 'react-native-elements';
+import {Image, TouchableWithoutFeedback, View, ScrollView} from 'react-native';
+import {Header, Icon, Overlay} from 'react-native-elements';
 import {connect} from 'react-redux';
-import {
-  Card,
-  CardItem,
-  Text,
-  Thumbnail,
-  Button,
-  Left,
-  Body,
-  Right,
-} from 'native-base';
+import {Card, CardItem, Text, Thumbnail, Left, Body, Right} from 'native-base';
 import {selectProfilePost, deletePost} from '../actions';
 import firebase from '@firebase/app';
 import '@firebase/database';
@@ -27,9 +11,7 @@ class PostDetailProfile extends Component {
   state = {
     isVisible: false,
     deleteVisible: false,
-    editPost: false,
-    editCaption: '',
-    isLoading: false,
+    caption: this.props.caption,
   };
 
   // LIFECYCLE //
@@ -43,36 +25,30 @@ class PostDetailProfile extends Component {
   }
   // LIFECYCLE //
 
-  // USER ACTIONS //
-  onUserEditPost = () => {
-    this.setState({
-      editPost: true,
-      editCaption: this.props.caption,
-      isVisible: false,
-    });
+  updateCaption = () => {
+    firebase
+      .database()
+      .ref('/posts')
+      .once('value')
+      .then(post => {
+        Object.keys(post.val()).forEach(data => {
+          if (data === this.props.id) {
+            this.setState({
+              caption: post.val()[data].caption,
+            });
+          }
+        });
+      });
   };
 
-  saveEditedPost = () => {
-    this.setState({isLoading: true});
-    try {
-      firebase
-        .database()
-        .ref(`posts/${this.props.id}`)
-        .update({
-          caption: this.state.editCaption,
-        })
-        .then(() => {
-          // this.props.selectProfilePost(null);
-          this.setState({isLoading: false, editPost: false});
-          ToastAndroid.show(
-            'Post Edited Successfully!',
-            ToastAndroid.SHORT,
-            ToastAndroid.CENTER,
-          );
-        });
-    } catch (e) {
-      console.log(e);
-    }
+  // USER ACTIONS //
+  onUserEditPost = () => {
+    this.props.navigation.navigate('EditPost', {
+      ...this.props,
+      caption: this.state.caption,
+      onSaveCaption: () => this.updateCaption(),
+    });
+    this.setState({isVisible: false});
   };
 
   onDeletePress = () => {
@@ -87,7 +63,7 @@ class PostDetailProfile extends Component {
     }
 
     return (
-      <View>
+      <View style={{paddingBottom: 50}}>
         <Header
           placement="left"
           centerComponent={{
@@ -99,28 +75,15 @@ class PostDetailProfile extends Component {
             color: 'black',
             onPress: () => this.props.selectProfilePost(null),
           }}
-          rightComponent={
-            this.state.editPost ? (
-              !this.state.isLoading ? (
-                {
-                  icon: 'done',
-                  color: '#4388d6',
-                  onPress: this.saveEditedPost,
-                }
-              ) : (
-                <ActivityIndicator size="small" color="#4388d6" />
-              )
-            ) : null
-          }
           containerStyle={{
             backgroundColor: '#fff',
             justifyContent: 'space-around',
             elevation: 2,
-            // eslint-disable-next-line no-undef
             marginTop: Platform.OS === 'ios' ? 0 : -25,
           }}
         />
-        <ScrollView style={{marginBottom: 60}}>
+
+        <ScrollView>
           <Card>
             <CardItem>
               <Left style={{flex: 4}}>
@@ -146,17 +109,7 @@ class PostDetailProfile extends Component {
             </CardItem>
             <CardItem>
               <Left>
-                {this.state.editPost ? (
-                  <Input
-                    autoFocus={true}
-                    selectTextOnFocus={true}
-                    placeholder="Caption"
-                    value={this.state.editCaption}
-                    onChangeText={text => this.setState({editCaption: text})}
-                  />
-                ) : (
-                  <Text>{this.props.caption}</Text>
-                )}
+                <Text>{this.state.caption}</Text>
               </Left>
             </CardItem>
           </Card>
